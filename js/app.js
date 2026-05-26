@@ -1,7 +1,7 @@
-/* =========================
+/* 
    SELECT HTML ELEMENTS
    These connect JavaScript to the buttons, modal, inputs, and notes area.
-========================= */
+*/
 
 const newNoteBtn = document.querySelector("#newNoteBtn");
 const noteOptions = document.querySelector("#noteOptions");
@@ -32,12 +32,12 @@ const ctx = drawingCanvas.getContext("2d");
 const emptyBinBtn = document.querySelector("#emptyBinBtn");
 
 
-/* =========================
+/* 
    APP STATE
    notes stores saved notes.
    currentView controls what the sidebar is showing.
    editingNoteId is null when creating, or an id when editing.
-========================= */
+*/
 
 let notes = JSON.parse(localStorage.getItem("notes")) || [];
 let currentView = "all";
@@ -49,19 +49,19 @@ let hasDrawing = false;
 let editingNoteId = null;
 
 
-/* =========================
+/*
    SAVE DATA
    Stores notes in localStorage so they stay after refresh.
-========================= */
+*/
 
 function saveToStorage() {
   localStorage.setItem("notes", JSON.stringify(notes));
 }
 
 
-/* =========================
+/*
    OPEN / CLOSE UI
-========================= */
+*/
 
 newNoteBtn.addEventListener("click", () => {
   noteOptions.classList.toggle("hidden");
@@ -70,6 +70,7 @@ newNoteBtn.addEventListener("click", () => {
 closeModal.addEventListener("click", closeNoteModal);
 
 function openNoteModal(type) {
+
   editingNoteId = null;
   currentNoteType = type;
 
@@ -81,15 +82,44 @@ function openNoteModal(type) {
   imageUploadBox.classList.add("hidden");
   drawingBox.classList.add("hidden");
 
+  /* Remove previous modal type */
+  noteModal.classList.remove(
+    "text-mode",
+    "image-mode",
+    "drawing-mode"
+  );
+
   if (type === "image") {
+
+    noteModal.classList.add("image-mode");
+
     imageUploadBox.classList.remove("hidden");
-    noteText.placeholder = "Write a caption for your image...";
-  } else if (type === "drawing") {
+
+    noteText.placeholder =
+      "Write image description...";
+
+  }
+
+  else if (type === "drawing") {
+
+    noteModal.classList.add("drawing-mode");
+
     drawingBox.classList.remove("hidden");
-    noteText.placeholder = "Write a caption for your drawing...";
+
+    noteText.placeholder =
+      "Write drawing description...";
+
     resetCanvas();
-  } else {
-    noteText.placeholder = "Write your note...";
+
+  }
+
+  else {
+
+    noteModal.classList.add("text-mode");
+
+    noteText.placeholder =
+      "Write your note...";
+
   }
 
   noteTitle.focus();
@@ -122,10 +152,10 @@ function closeNoteModal() {
 }
 
 
-/* =========================
+/*
    NOTE TYPE MENU
    Opens a modal for writing, image, or drawing notes.
-========================= */
+*/
 
 document.querySelectorAll(".option-btn").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -135,10 +165,10 @@ document.querySelectorAll(".option-btn").forEach((btn) => {
 });
 
 
-/* =========================
+/*
    IMAGE UPLOAD
    Reads uploaded image and converts it into base64.
-========================= */
+*/
 
 imageInput.addEventListener("change", () => {
   const file = imageInput.files[0];
@@ -157,11 +187,11 @@ imageInput.addEventListener("change", () => {
 });
 
 
-/* =========================
+/*
    DRAWING CANVAS
    Lets the user draw on the canvas.
    Canvas is saved as an image when the note is saved.
-========================= */
+*/
 
 function resetCanvas() {
   ctx.fillStyle = "#111827";
@@ -237,10 +267,10 @@ drawingCanvas.addEventListener("touchend", stopDrawing);
 clearCanvasBtn.addEventListener("click", resetCanvas);
 
 
-/* =========================
+/*
    FAVORITE BUTTON
    Toggles favorite state inside the modal.
-========================= */
+*/
 
 favoriteBtn.addEventListener("click", () => {
   isFavorite = !isFavorite;
@@ -248,11 +278,11 @@ favoriteBtn.addEventListener("click", () => {
 });
 
 
-/* =========================
+/*
    CREATE OR UPDATE NOTE
    If editingNoteId exists, update the old note.
    Otherwise create a new note.
-========================= */
+*/
 
 saveNoteBtn.addEventListener("click", () => {
   const title = noteTitle.value.trim();
@@ -313,10 +343,10 @@ saveNoteBtn.addEventListener("click", () => {
 });
 
 
-/* =========================
+/* 
    EDIT EXISTING NOTE
    Opens the modal with the note's current saved data.
-========================= */
+*/
 
 function editNote(id) {
   const note = notes.find((note) => note.id === id);
@@ -363,10 +393,10 @@ function editNote(id) {
 }
 
 
-/* =========================
+/*
    RENDER NOTES
    Filters and displays notes based on sidebar view + search.
-========================= */
+*/
 
 function renderNotes() {
   notesGrid.innerHTML = "";
@@ -450,10 +480,10 @@ function renderNotes() {
 }
 
 
-/* =========================
+/* 
    NOTE ACTIONS
    Favorite, move to bin, restore, and delete forever.
-========================= */
+*/
 
 function toggleFavorite(id) {
   notes = notes.map((note) => {
@@ -513,10 +543,10 @@ function emptyBin() {
 }
 
 
-/* =========================
+/*
    SIDEBAR NAVIGATION
    Changes which section of notes is shown.
-========================= */
+*/
 
 navItems.forEach((item, index) => {
   item.addEventListener("click", (event) => {
@@ -535,25 +565,25 @@ navItems.forEach((item, index) => {
 });
 
 
-/* =========================
+/* 
    SEARCH
    Re-renders notes whenever the user types in the search bar.
-========================= */
+*/
 
 searchInput.addEventListener("input", renderNotes);
 
 
-/* =========================
+/*
    EMPTY BIN EVENT
-========================= */
+*/
 
 emptyBinBtn.addEventListener("click", emptyBin);
 
 
-/* =========================
+/*
    SECURITY HELPER
    Prevents user text from being treated as HTML.
-========================= */
+ */
 
 function escapeHTML(text) {
   return String(text).replace(/[&<>"']/g, (char) => ({
@@ -563,13 +593,13 @@ function escapeHTML(text) {
     '"': "&quot;",
     "'": "&#039;"
   }[char]));
-}
+} 
 
 
-/* =========================
+/*
    INITIAL LOAD
    Prepares canvas and displays saved notes.
-========================= */
+*/
 
 resetCanvas();
 renderNotes();

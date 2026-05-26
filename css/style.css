@@ -1,8 +1,8 @@
-/* =========================
+/* 
    RESET
    Removes default browser spacing.
    This helps the layout look the same across browsers.
-========================= */
+*/
 
 * {
   margin: 0;
@@ -11,11 +11,11 @@
 }
 
 
-/* =========================
+/* 
    ROOT VARIABLES
    These variables store reusable colours and values.
    If you want to change the theme later, edit these first.
-========================= */
+*/
 
 :root {
   --bg: #15171c;                    /* Main page background */
@@ -33,11 +33,11 @@
 }
 
 
-/* =========================
+/* 
    BODY
    Sets the global font, dark background,
    and makes the page use full screen height.
-========================= */
+*/
 
 body {
   font-family: Inter, system-ui, sans-serif;
@@ -48,11 +48,11 @@ body {
 }
 
 
-/* =========================
+/*
    SIDEBAR
    The sidebar starts narrow so only icons are visible.
    On hover, it expands and reveals the text labels.
-========================= */
+*/
 
 .sidebar {
   width: 78px;
@@ -79,11 +79,11 @@ body {
 }
 
 
-/* =========================
+/*
    SIDEBAR LOGO
    Contains the app icon and app name.
    The app name is hidden until sidebar hover.
-========================= */
+*/
 
 .logo {
   display: flex;
@@ -113,11 +113,11 @@ body {
 }
 
 
-/* =========================
+/*
    NAVIGATION LINKS
    Sidebar menu items.
    Text labels are hidden until the sidebar expands.
-========================= */
+*/
 
 .nav-links {
   display: flex;
@@ -165,11 +165,11 @@ body {
 }
 
 
-/* =========================
+/* 
    MAIN CONTENT
    This is the main workspace beside the sidebar.
    The left margin matches the sidebar width.
-========================= */
+*/
 
 .main-content {
   flex: 1;
@@ -186,10 +186,10 @@ body {
 }
 
 
-/* =========================
+/* 
    TOP SEARCH BAR
    Search input placed at the top-right of the app.
-========================= */
+*/
 
 .topbar {
   display: flex;
@@ -233,11 +233,11 @@ body {
 }
 
 
-/* =========================
+/* 
    NEW NOTE SECTION
    Centers the main "New Note" button.
    The note options dropdown appears below it.
-========================= */
+*/
 
 .new-note-section {
   display: flex;
@@ -281,11 +281,11 @@ body {
 }
 
 
-/* =========================
+/* 
    NOTE TYPE OPTIONS
    Dropdown menu shown after clicking "New Note".
    Users choose Writing, Drawing, or Image note.
-========================= */
+*/
 
 .note-options {
   margin-top: 14px;
@@ -330,24 +330,61 @@ body {
 }
 
 
-/* =========================
+/* 
    NOTES GRID
    Displays saved notes as responsive cards.
    auto-fill lets the cards wrap on smaller screens.
-========================= */
-
+*/
 .notes-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-
-  gap: 22px;
+  column-count: 4;
+  column-gap: 22px;
 }
 
+.note-card {
+  display: inline-flex;
+  width: 100%;
+  margin-bottom: 22px;
 
-/* =========================
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+
+  flex-direction: column;
+  gap: 14px;
+
+  break-inside: avoid;
+  transition: 0.2s ease;
+}
+
+@media (max-width: 1200px) {
+  .notes-grid {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 900px) {
+  .notes-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 600px) {
+  .notes-grid {
+    column-count: 1;
+  }
+}
+
+/* 
    NOTE CARD
    Styling for each saved note.
    JavaScript will create these cards dynamically.
+*/
+
+/* =========================
+   NOTE CARD
+   Compact masonry-like cards
 ========================= */
 
 .note-card {
@@ -361,42 +398,43 @@ body {
 
   display: flex;
   flex-direction: column;
+
   gap: 14px;
 
   transition: 0.2s ease;
+
+  /* Important */
+  height: fit-content;
+  align-self: start;
 }
 
-/* Gives notes a slight lift when hovered */
+/* Hover effect */
 .note-card:hover {
   transform: translateY(-4px);
 }
 
-.note-card h3 {
-  font-size: 18px;
-  color: var(--text);
-}
+
 
 .note-card p {
   color: var(--muted);
   line-height: 1.5;
-
-  /* Keeps line breaks from text area notes */
+  
   white-space: pre-wrap;
+  margin-bottom: 4px;
 }
 
-
-/* =========================
+/*
    NOTE ACTION BUTTONS
    Buttons used inside note cards:
    favourite, delete, edit, etc.
-========================= */
+*/
 
 .note-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .note-icons {
@@ -438,10 +476,10 @@ body {
 }
 
 
-/* =========================
+/* 
    MODAL / POPUP
    Full-screen overlay shown when creating a note.
-========================= */
+*/
 
 .modal {
   position: fixed;
@@ -457,6 +495,11 @@ body {
   padding: 20px;
 }
 
+/* 
+   MODAL CONTENT
+   Different modal sizes for each note type
+*/
+
 .modal-content {
   width: 100%;
   max-width: 620px;
@@ -470,6 +513,23 @@ body {
   box-shadow: var(--shadow);
 
   animation: popup 0.2s ease;
+
+  transition: 0.2s ease;
+}
+
+/* Writing notes need more vertical space */
+.text-mode .modal-content {
+  max-width: 620px;
+}
+
+/* Image notes should be more compact */
+.image-mode .modal-content {
+  max-width: 560px;
+}
+
+/* Drawing notes need wider layout */
+.drawing-mode .modal-content {
+  max-width: 760px;
 }
 
 /* Simple popup animation */
@@ -508,11 +568,11 @@ body {
 }
 
 
-/* =========================
+/*
    MODAL INPUTS
    Inputs used inside the note modal.
    Transparent backgrounds help them blend with the card.
-========================= */
+*/
 
 .note-title-input {
   width: 100%;
@@ -534,27 +594,52 @@ body {
   color: var(--muted);
 }
 
+/* 
+   NOTE CONTENT AREAS
+   Different sizes for different note types
+*/
+
+/* =========================
+   NOTE TEXTAREA
+========================= */
+
 .note-textarea {
-  width: 100%;
-  min-height: 220px;
+  width:100%;
 
-  border: none;
-  resize: none;
-  outline: none;
+  border:none;
+  outline:none;
+  resize:none;
 
-  background: transparent;
-  color: var(--text);
+  background:transparent;
+  color:var(--text);
 
-  font-size: 16px;
-  line-height: 1.6;
+  font-size:16px;
+  line-height:1.6;
+
+  transition:0.2s ease;
+}
+
+/* Writing notes */
+.text-mode .note-textarea{
+  min-height:240px;
+}
+
+/* Image note captions */
+.image-mode .note-textarea{
+  min-height:80px;
+}
+
+/* Drawing note captions */
+.drawing-mode .note-textarea{
+  min-height:60px;
 }
 
 
-/* =========================
+/* 
    MODAL ACTIONS
    Bottom row inside the modal:
    favourite button and save button.
-========================= */
+*/
 
 .modal-actions {
   display: flex;
@@ -592,22 +677,22 @@ body {
 }
 
 
-/* =========================
+/* 
    UTILITY CLASSES
    Reusable helper classes.
    .hidden is used by JavaScript to hide/show elements.
-========================= */
+*/
 
 .hidden {
   display: none;
 }
 
 
-/* =========================
+/* 
    RESPONSIVE DESIGN
    On smaller screens, the sidebar stays collapsed
    so it does not cover too much of the page.
-========================= */
+*/
 
 @media (max-width: 768px) {
   .sidebar {
@@ -641,10 +726,10 @@ body {
 }
 
 
-/* =========================
+/* 
    IMAGE UPLOAD
    Used when the user creates an Image Note.
-========================= */
+*/
 
 .image-upload {
   margin-top: 16px;
@@ -732,10 +817,10 @@ body {
   border-radius: 999px;
 }
 
-/* =========================
+/* 
    DRAWING NOTE
    Canvas area used for drawing notes.
-========================= */
+*/
 
 .drawing-box {
   margin-top: 16px;
@@ -786,6 +871,7 @@ body {
 #drawingCanvas {
   width: 100%;
   height: 300px;
+  max-height: 420px;
 
   background: #111827;
 
@@ -796,10 +882,10 @@ body {
 }
 
 
-/* =========================
+/* 
    EMPTY BIN BUTTON
    Only appears when user is viewing Bin.
-========================= */
+*/
 
 .empty-bin-btn {
   margin-top: 16px;
