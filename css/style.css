@@ -1,0 +1,824 @@
+/* =========================
+   RESET
+   Removes default browser spacing.
+   This helps the layout look the same across browsers.
+========================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+/* =========================
+   ROOT VARIABLES
+   These variables store reusable colours and values.
+   If you want to change the theme later, edit these first.
+========================= */
+
+:root {
+  --bg: #15171c;                    /* Main page background */
+  --sidebar: #1e1f25;               /* Sidebar background */
+  --card: #24262d;                  /* Cards, modal, search box */
+  --text: #f3f4f6;                  /* Main text colour */
+  --muted: #9ca3af;                 /* Secondary text colour */
+  --border: rgba(255,255,255,0.08); /* Subtle border colour */
+
+  --primary: #7c82ff;               /* Main accent colour */
+  --primary-hover: #6366f1;         /* Accent colour on hover */
+
+  --shadow: 0 10px 30px rgba(0,0,0,0.28);
+  --radius: 18px;
+}
+
+
+/* =========================
+   BODY
+   Sets the global font, dark background,
+   and makes the page use full screen height.
+========================= */
+
+body {
+  font-family: Inter, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+}
+
+
+/* =========================
+   SIDEBAR
+   The sidebar starts narrow so only icons are visible.
+   On hover, it expands and reveals the text labels.
+========================= */
+
+.sidebar {
+  width: 78px;
+  min-width: 78px;
+  height: 100vh;
+
+  position: fixed;
+  z-index: 100;
+
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+
+  padding: 20px 12px;
+
+  /* Hides text while sidebar is collapsed */
+  overflow: hidden;
+
+  transition: width 0.25s ease;
+}
+
+/* Expands sidebar when the user moves the cursor over it */
+.sidebar:hover {
+  width: 240px;
+}
+
+
+/* =========================
+   SIDEBAR LOGO
+   Contains the app icon and app name.
+   The app name is hidden until sidebar hover.
+========================= */
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 12px;
+  margin-bottom: 24px;
+
+  color: var(--text);
+}
+
+.logo i {
+  font-size: 28px;
+  min-width: 28px;
+  color: var(--primary);
+}
+
+/* Hidden by default so only the icon appears */
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+
+/* =========================
+   NAVIGATION LINKS
+   Sidebar menu items.
+   Text labels are hidden until the sidebar expands.
+========================= */
+
+.nav-links {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 14px;
+  border-radius: 14px;
+
+  color: #d1d5db;
+  text-decoration: none;
+  white-space: nowrap;
+
+  transition: 0.2s ease;
+}
+
+.nav-item i {
+  font-size: 22px;
+  min-width: 22px;
+}
+
+/* Navigation text is hidden while sidebar is collapsed */
+.nav-item span {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Shows logo text and menu labels only when sidebar is hovered */
+.sidebar:hover .logo-text,
+.sidebar:hover .nav-item span {
+  opacity: 1;
+}
+
+/* Hover and active state for navigation links */
+.nav-item:hover,
+.nav-item.active {
+  background: rgba(124,130,255,0.14);
+  color: var(--primary);
+}
+
+
+/* =========================
+   MAIN CONTENT
+   This is the main workspace beside the sidebar.
+   The left margin matches the sidebar width.
+========================= */
+
+.main-content {
+  flex: 1;
+
+  margin-left: 78px;
+  padding: 28px;
+
+  transition: margin-left 0.25s ease;
+}
+
+/* Moves main content when sidebar expands */
+.sidebar:hover ~ .main-content {
+  margin-left: 240px;
+}
+
+
+/* =========================
+   TOP SEARCH BAR
+   Search input placed at the top-right of the app.
+========================= */
+
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 30px;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 320px;
+  padding: 12px 16px;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+
+.search-box i {
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.search-box input {
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+  color: var(--text);
+
+  font-size: 15px;
+}
+
+.search-box input::placeholder {
+  color: var(--muted);
+}
+
+
+/* =========================
+   NEW NOTE SECTION
+   Centers the main "New Note" button.
+   The note options dropdown appears below it.
+========================= */
+
+.new-note-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  margin-bottom: 40px;
+
+  position: relative;
+}
+
+.new-note-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: var(--primary);
+  color: white;
+
+  border: none;
+  padding: 16px 26px;
+  border-radius: 18px;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  cursor: pointer;
+  box-shadow: var(--shadow);
+
+  transition: 0.2s ease;
+}
+
+/* Small animation to make the button feel interactive */
+.new-note-btn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.new-note-btn i {
+  font-size: 22px;
+}
+
+
+/* =========================
+   NOTE TYPE OPTIONS
+   Dropdown menu shown after clicking "New Note".
+   Users choose Writing, Drawing, or Image note.
+========================= */
+
+.note-options {
+  margin-top: 14px;
+  width: 260px;
+  padding: 14px;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  border: none;
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+
+  padding: 14px;
+  border-radius: 14px;
+
+  cursor: pointer;
+  font-size: 15px;
+
+  transition: 0.2s ease;
+}
+
+.option-btn:hover {
+  background: rgba(124,130,255,0.14);
+  color: var(--primary);
+}
+
+.option-btn i {
+  font-size: 22px;
+}
+
+
+/* =========================
+   NOTES GRID
+   Displays saved notes as responsive cards.
+   auto-fill lets the cards wrap on smaller screens.
+========================= */
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+
+  gap: 22px;
+}
+
+
+/* =========================
+   NOTE CARD
+   Styling for each saved note.
+   JavaScript will create these cards dynamically.
+========================= */
+
+.note-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+
+  padding: 18px;
+
+  box-shadow: var(--shadow);
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  transition: 0.2s ease;
+}
+
+/* Gives notes a slight lift when hovered */
+.note-card:hover {
+  transform: translateY(-4px);
+}
+
+.note-card h3 {
+  font-size: 18px;
+  color: var(--text);
+}
+
+.note-card p {
+  color: var(--muted);
+  line-height: 1.5;
+
+  /* Keeps line breaks from text area notes */
+  white-space: pre-wrap;
+}
+
+
+/* =========================
+   NOTE ACTION BUTTONS
+   Buttons used inside note cards:
+   favourite, delete, edit, etc.
+========================= */
+
+.note-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-top: 8px;
+}
+
+.note-icons {
+  display: flex;
+  gap: 10px;
+}
+
+.note-icons button,
+.close-btn,
+.favorite-btn {
+  border: none;
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+
+  border-radius: 12px;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.note-icons button {
+  width: 38px;
+  height: 38px;
+}
+
+.note-icons button:hover,
+.close-btn:hover,
+.favorite-btn:hover {
+  background: rgba(255,255,255,0.11);
+}
+
+.note-icons i {
+  font-size: 20px;
+}
+
+/* Yellow colour used when a note is favourited */
+.favorite {
+  color: #f59e0b;
+}
+
+
+/* =========================
+   MODAL / POPUP
+   Full-screen overlay shown when creating a note.
+========================= */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  background: rgba(0,0,0,0.55);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 620px;
+
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+
+  padding: 24px;
+
+  box-shadow: var(--shadow);
+
+  animation: popup 0.2s ease;
+}
+
+/* Simple popup animation */
+@keyframes popup {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 18px;
+}
+
+.modal-header h2 {
+  font-size: 24px;
+  color: var(--text);
+}
+
+.close-btn {
+  width: 42px;
+  height: 42px;
+}
+
+.close-btn i {
+  font-size: 24px;
+}
+
+
+/* =========================
+   MODAL INPUTS
+   Inputs used inside the note modal.
+   Transparent backgrounds help them blend with the card.
+========================= */
+
+.note-title-input {
+  width: 100%;
+
+  border: none;
+  outline: none;
+
+  background: transparent;
+  color: var(--text);
+
+  font-size: 24px;
+  font-weight: 700;
+
+  margin-bottom: 16px;
+}
+
+.note-title-input::placeholder,
+.note-textarea::placeholder {
+  color: var(--muted);
+}
+
+.note-textarea {
+  width: 100%;
+  min-height: 220px;
+
+  border: none;
+  resize: none;
+  outline: none;
+
+  background: transparent;
+  color: var(--text);
+
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+
+/* =========================
+   MODAL ACTIONS
+   Bottom row inside the modal:
+   favourite button and save button.
+========================= */
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-top: 20px;
+}
+
+.favorite-btn {
+  width: 46px;
+  height: 46px;
+}
+
+.favorite-btn i {
+  font-size: 24px;
+}
+
+.save-note-btn {
+  background: var(--primary);
+  color: white;
+
+  border: none;
+  padding: 14px 24px;
+  border-radius: 14px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.save-note-btn:hover {
+  background: var(--primary-hover);
+}
+
+
+/* =========================
+   UTILITY CLASSES
+   Reusable helper classes.
+   .hidden is used by JavaScript to hide/show elements.
+========================= */
+
+.hidden {
+  display: none;
+}
+
+
+/* =========================
+   RESPONSIVE DESIGN
+   On smaller screens, the sidebar stays collapsed
+   so it does not cover too much of the page.
+========================= */
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 72px;
+    min-width: 72px;
+  }
+
+  .sidebar:hover {
+    width: 72px;
+  }
+
+  /* Keeps sidebar text hidden on mobile */
+  .sidebar:hover .logo-text,
+  .sidebar:hover .nav-item span {
+    opacity: 0;
+  }
+
+  .main-content,
+  .sidebar:hover ~ .main-content {
+    margin-left: 72px;
+    padding: 20px;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .topbar {
+    justify-content: center;
+  }
+}
+
+
+/* =========================
+   IMAGE UPLOAD
+   Used when the user creates an Image Note.
+========================= */
+
+.image-upload {
+  margin-top: 16px;
+}
+
+.image-label {
+  display: inline-block;
+  margin-bottom: 10px;
+
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+
+  padding: 10px 14px;
+  border-radius: 12px;
+
+  cursor: pointer;
+}
+
+.image-label:hover {
+  background: rgba(255,255,255,0.11);
+}
+
+#imageInput {
+  display: block;
+  color: var(--muted);
+}
+
+.image-preview {
+  width: 100%;
+  max-height: 260px;
+
+  object-fit: cover;
+
+  margin-top: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+
+.note-image {
+  width: 100%;
+  max-height: 220px;
+
+  object-fit: cover;
+
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+/* Tags input inside the note modal */
+.note-tags-input {
+  width: 100%;
+
+  border: 1px solid var(--border);
+  outline: none;
+
+  background: rgba(255,255,255,0.04);
+  color: var(--text);
+
+  font-size: 14px;
+
+  padding: 12px 14px;
+  margin-top: 14px;
+
+  border-radius: 14px;
+}
+
+.note-tags-input::placeholder {
+  color: var(--muted);
+}
+
+/* Small tag labels shown on note cards */
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-pill {
+  font-size: 12px;
+  color: var(--primary);
+
+  background: rgba(124,130,255,0.14);
+
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+
+/* =========================
+   DRAWING NOTE
+   Canvas area used for drawing notes.
+========================= */
+
+.drawing-box {
+  margin-top: 16px;
+}
+
+.drawing-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  margin-bottom: 12px;
+
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.drawing-toolbar input[type="color"] {
+  width: 42px;
+  height: 38px;
+
+  border: 1px solid var(--border);
+  border-radius: 10px;
+
+  background: transparent;
+  cursor: pointer;
+}
+
+.drawing-toolbar input[type="range"] {
+  width: 120px;
+}
+
+.clear-canvas-btn {
+  border: none;
+  background: rgba(255,255,255,0.06);
+  color: var(--text);
+
+  padding: 10px 14px;
+  border-radius: 12px;
+
+  cursor: pointer;
+}
+
+.clear-canvas-btn:hover {
+  background: rgba(255,255,255,0.11);
+}
+
+#drawingCanvas {
+  width: 100%;
+  height: 300px;
+
+  background: #111827;
+
+  border: 1px solid var(--border);
+  border-radius: 16px;
+
+  cursor: crosshair;
+}
+
+
+/* =========================
+   EMPTY BIN BUTTON
+   Only appears when user is viewing Bin.
+========================= */
+
+.empty-bin-btn {
+  margin-top: 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: rgba(239,68,68,0.14);
+  color: #f87171;
+
+  border: 1px solid rgba(239,68,68,0.28);
+  padding: 12px 18px;
+  border-radius: 14px;
+
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.empty-bin-btn:hover {
+  background: rgba(239,68,68,0.22);
+}
