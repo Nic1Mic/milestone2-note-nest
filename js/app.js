@@ -30,6 +30,7 @@ const clearCanvasBtn = document.querySelector("#clearCanvasBtn");
 const ctx = drawingCanvas.getContext("2d");
 
 const emptyBinBtn = document.querySelector("#emptyBinBtn");
+const themeToggle = document.querySelector("#themeToggle");
 
 
 /* 
@@ -392,6 +393,41 @@ function editNote(id) {
   noteTitle.focus();
 }
 
+/* 
+   DARK/LIGHT MODE
+*/
+
+const savedTheme = localStorage.getItem("theme");
+
+if (savedTheme === "light") {
+  document.body.classList.add("light-mode");
+
+  themeToggle.innerHTML = "<i class='bx bx-sun'></i>";
+}
+
+themeToggle.addEventListener("click", () => {
+
+  document.body.classList.toggle("light-mode");
+
+  const isLight =
+    document.body.classList.contains("light-mode");
+
+  if (isLight) {
+
+    localStorage.setItem("theme", "light");
+
+    themeToggle.innerHTML =
+      "<i class='bx bx-sun'></i>";
+
+  } else {
+
+    localStorage.setItem("theme", "dark");
+
+    themeToggle.innerHTML =
+      "<i class='bx bx-moon'></i>";
+  }
+
+});
 
 /*
    RENDER NOTES

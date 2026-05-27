@@ -13,23 +13,53 @@
 
 /* 
    ROOT VARIABLES
-   These variables store reusable colours and values.
-   If you want to change the theme later, edit these first.
+   Store reusable colours and values.
+   
 */
 
 :root {
-  --bg: #15171c;                    /* Main page background */
-  --sidebar: #1e1f25;               /* Sidebar background */
-  --card: #24262d;                  /* Cards, modal, search box */
-  --text: #f3f4f6;                  /* Main text colour */
-  --muted: #9ca3af;                 /* Secondary text colour */
-  --border: rgba(255,255,255,0.08); /* Subtle border colour */
 
-  --primary: #7c82ff;               /* Main accent colour */
-  --primary-hover: #6366f1;         /* Accent colour on hover */
+  /* 
+     DARK MODE (default) 
+  */
+  --bg: #15171c;
+  --sidebar: #1e1f25;
+  --card: #24262d;
+
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+
+  --border: rgba(255,255,255,0.08);
+
+  --primary: #7c82ff;
+  --primary-hover: #6366f1;
 
   --shadow: 0 10px 30px rgba(0,0,0,0.28);
+
   --radius: 18px;
+}
+
+
+/* 
+   LIGHT MODE VARIABLES
+*/
+
+body.light-mode {
+
+  --bg: #f3f4f8;
+
+  --sidebar: #ffffff;
+  --card: #ffffff;
+
+  --text: #111827;
+  --muted: #6b7280;
+
+  --border: rgba(0,0,0,0.08);
+
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+
+  --shadow: 0 10px 30px rgba(0,0,0,0.08);
 }
 
 
@@ -185,6 +215,48 @@ body {
   margin-left: 240px;
 }
 
+
+/*
+   THEME TOGGLE
+*/
+
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 14px;
+
+  margin-bottom: 30px;
+}
+
+.theme-toggle {
+  width: 52px;
+  height: 52px;
+
+  border: 1px solid var(--border);
+  border-radius: 16px;
+
+  background: var(--card);
+  color: var(--text);
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: var(--shadow);
+
+  transition: 0.2s ease;
+}
+
+.theme-toggle:hover {
+  transform: translateY(-2px);
+}
+
+.theme-toggle i {
+  font-size: 22px;
+}
 
 /* 
    TOP SEARCH BAR
