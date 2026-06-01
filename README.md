@@ -396,9 +396,9 @@ The layout successfully adapts to different screen sizes while maintaining usabi
 
 Example screenshot:
 
-```md
-![Responsive Design](images/testing/responsiveness.png)
-```
+
+![Responsive Design](images/final-product/responsiveness.png)
+
 
 ---
 
@@ -422,9 +422,9 @@ HTML files were tested using the W3C HTML Validator.
 
 Example screenshot:
 
-```md
+
 ![HTML Validator Results](images/validators/html-validator.png)
-```
+
 
 #### CSS Validation
 
@@ -432,9 +432,9 @@ CSS files were tested using the W3C CSS Validator.
 
 Example screenshot:
 
-```md
+
 ![CSS Validator Results](images/validators/css-validator.png)
-```
+
 
 ---
 
@@ -449,13 +449,13 @@ Google Chrome Lighthouse was used to evaluate:
 
 Example screenshot:
 
-```md
-![Lighthouse Results Desktop](images/testing/lighthouse-desktop.png)
-```
 
-```md
+![Lighthouse Results Desktop](images/testing/lighthouse-desktop.png)
+
+
+
 ![Lighthouse Results mobile](images/testing/lighthouse-mobile.png)
-```
+
 
 ---
 
