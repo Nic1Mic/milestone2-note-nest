@@ -449,10 +449,11 @@ Google Chrome Lighthouse was used to evaluate:
 
 Example screenshot:
 
+Desktop mode:
 
 ![Lighthouse Results Desktop](images/testing/lighthouse-desktop.png)
 
-
+Mobile mode:
 
 ![Lighthouse Results mobile](images/testing/lighthouse-mobile.png)
 
