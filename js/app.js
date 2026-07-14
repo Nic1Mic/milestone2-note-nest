@@ -1,12 +1,14 @@
-/* 
+/* jshint esversion: 11, browser: true */
+
+/*
    SELECT HTML ELEMENTS
-   These connect JavaScript to the buttons, modal, inputs, and notes area.
+   Connects JavaScript to the HTML interface.
 */
 
 const newNoteBtn = document.querySelector("#newNoteBtn");
 const noteOptions = document.querySelector("#noteOptions");
 const noteModal = document.querySelector("#noteModal");
-const closeModal = document.querySelector("#closeModal");
+const closeModalBtn = document.querySelector("#closeModal");
 const saveNoteBtn = document.querySelector("#saveNoteBtn");
 
 const noteTitle = document.querySelector("#noteTitle");
@@ -27,20 +29,28 @@ const drawingCanvas = document.querySelector("#drawingCanvas");
 const penColor = document.querySelector("#penColor");
 const penSize = document.querySelector("#penSize");
 const clearCanvasBtn = document.querySelector("#clearCanvasBtn");
-const ctx = drawingCanvas.getContext("2d");
+const canvasContext = drawingCanvas.getContext("2d");
 
 const emptyBinBtn = document.querySelector("#emptyBinBtn");
 const themeToggle = document.querySelector("#themeToggle");
 
 
-/* 
-   APP STATE
-   notes stores saved notes.
-   currentView controls what the sidebar is showing.
-   editingNoteId is null when creating, or an id when editing.
+/*
+   CONSTANTS
 */
 
-let notes = JSON.parse(localStorage.getItem("notes")) || [];
+const STORAGE_KEY = "notes";
+const THEME_KEY = "theme";
+
+const EMPTY_IMAGE =
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+
+
+/*
+   APPLICATION STATE
+*/
+
+let notes = loadNotes();
 let currentView = "all";
 let currentNoteType = "text";
 let isFavorite = false;
@@ -51,76 +61,91 @@ let editingNoteId = null;
 
 
 /*
-   SAVE DATA
-   Stores notes in localStorage so they stay after refresh.
+   STORAGE
 */
 
+function loadNotes() {
+  const savedNotes = localStorage.getItem(STORAGE_KEY);
+
+  if (!savedNotes) {
+    return [];
+  }
+
+  try {
+    const parsedNotes = JSON.parse(savedNotes);
+
+    if (Array.isArray(parsedNotes)) {
+      return parsedNotes;
+    }
+
+    return [];
+  } catch (error) {
+    console.error("Could not load saved notes:", error);
+    return [];
+  }
+}
+
 function saveToStorage() {
-  localStorage.setItem("notes", JSON.stringify(notes));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
 }
 
 
 /*
-   OPEN / CLOSE UI
+   NOTE MODAL
 */
 
-newNoteBtn.addEventListener("click", () => {
-  noteOptions.classList.toggle("hidden");
-});
-
-closeModal.addEventListener("click", closeNoteModal);
-
-function openNoteModal(type) {
-
-  editingNoteId = null;
-  currentNoteType = type;
-
-  noteOptions.classList.add("hidden");
-  noteModal.classList.remove("hidden");
-
-  saveNoteBtn.textContent = "Save Note";
-
-  imageUploadBox.classList.add("hidden");
-  drawingBox.classList.add("hidden");
-
-  /* Remove previous modal type */
+function setModalMode(type) {
   noteModal.classList.remove(
     "text-mode",
     "image-mode",
     "drawing-mode"
   );
 
+  imageUploadBox.classList.add("hidden");
+  drawingBox.classList.add("hidden");
+
   if (type === "image") {
-
     noteModal.classList.add("image-mode");
-
     imageUploadBox.classList.remove("hidden");
-
-    noteText.placeholder =
-      "Write image description...";
-
+    noteText.placeholder = "Write an image description...";
+    return;
   }
 
-  else if (type === "drawing") {
-
+  if (type === "drawing") {
     noteModal.classList.add("drawing-mode");
-
     drawingBox.classList.remove("hidden");
-
-    noteText.placeholder =
-      "Write drawing description...";
-
-    resetCanvas();
-
+    noteText.placeholder = "Write a drawing description...";
+    return;
   }
 
-  else {
+  noteModal.classList.add("text-mode");
+  noteText.placeholder = "Write your note...";
+}
 
-    noteModal.classList.add("text-mode");
+function openNoteModal(type) {
+  editingNoteId = null;
+  currentNoteType = type;
+  isFavorite = false;
+  uploadedImage = "";
 
-    noteText.placeholder =
-      "Write your note...";
+  noteOptions.classList.add("hidden");
+  noteModal.classList.remove("hidden");
 
+  saveNoteBtn.textContent = "Save Note";
+  favoriteBtn.classList.remove("favorite");
+
+  noteTitle.value = "";
+  noteText.value = "";
+  noteTags.value = "";
+
+  imageInput.value = "";
+  imagePreview.src = EMPTY_IMAGE;
+  imagePreview.classList.add("hidden");
+
+  setModalMode(type);
+
+  if (type === "drawing") {
+    resetCanvas();
   }
 
   noteTitle.focus();
@@ -143,7 +168,7 @@ function closeNoteModal() {
   saveNoteBtn.textContent = "Save Note";
 
   imageInput.value = "";
-  imagePreview.src = "";
+  imagePreview.src = EMPTY_IMAGE;
   imagePreview.classList.add("hidden");
 
   imageUploadBox.classList.add("hidden");
@@ -154,13 +179,18 @@ function closeNoteModal() {
 
 
 /*
-   NOTE TYPE MENU
-   Opens a modal for writing, image, or drawing notes.
+   NEW NOTE MENU
 */
 
-document.querySelectorAll(".option-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const type = btn.dataset.type || "text";
+newNoteBtn.addEventListener("click", function () {
+  noteOptions.classList.toggle("hidden");
+});
+
+closeModalBtn.addEventListener("click", closeNoteModal);
+
+document.querySelectorAll(".option-btn").forEach(function (button) {
+  button.addEventListener("click", function () {
+    const type = button.dataset.type || "text";
     openNoteModal(type);
   });
 });
@@ -168,17 +198,24 @@ document.querySelectorAll(".option-btn").forEach((btn) => {
 
 /*
    IMAGE UPLOAD
-   Reads uploaded image and converts it into base64.
 */
 
-imageInput.addEventListener("change", () => {
+imageInput.addEventListener("change", function () {
   const file = imageInput.files[0];
 
-  if (!file) return;
+  if (!file) {
+    return;
+  }
+
+  if (!file.type.startsWith("image/")) {
+    alert("Please choose a valid image file.");
+    imageInput.value = "";
+    return;
+  }
 
   const reader = new FileReader();
 
-  reader.addEventListener("load", () => {
+  reader.addEventListener("load", function () {
     uploadedImage = reader.result;
     imagePreview.src = uploadedImage;
     imagePreview.classList.remove("hidden");
@@ -190,37 +227,63 @@ imageInput.addEventListener("change", () => {
 
 /*
    DRAWING CANVAS
-   Lets the user draw on the canvas.
-   Canvas is saved as an image when the note is saved.
 */
 
 function resetCanvas() {
-  ctx.fillStyle = "#111827";
-  ctx.fillRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+  canvasContext.fillStyle = "#111827";
+
+  canvasContext.fillRect(
+    0,
+    0,
+    drawingCanvas.width,
+    drawingCanvas.height
+  );
+
   hasDrawing = false;
 }
 
-function loadImageToCanvas(imageSrc) {
+function loadImageToCanvas(imageSource) {
   const image = new Image();
 
-  image.onload = () => {
+  image.addEventListener("load", function () {
     resetCanvas();
-    ctx.drawImage(image, 0, 0, drawingCanvas.width, drawingCanvas.height);
-    hasDrawing = true;
-  };
 
-  image.src = imageSrc;
+    canvasContext.drawImage(
+      image,
+      0,
+      0,
+      drawingCanvas.width,
+      drawingCanvas.height
+    );
+
+    hasDrawing = true;
+  });
+
+  image.src = imageSource;
 }
 
 function getCanvasPosition(event) {
-  const rect = drawingCanvas.getBoundingClientRect();
+  const rectangle = drawingCanvas.getBoundingClientRect();
 
-  const clientX = event.touches ? event.touches[0].clientX : event.clientX;
-  const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+  let clientX;
+  let clientY;
+
+  if (event.touches && event.touches.length > 0) {
+    clientX = event.touches[0].clientX;
+    clientY = event.touches[0].clientY;
+  } else {
+    clientX = event.clientX;
+    clientY = event.clientY;
+  }
 
   return {
-    x: (clientX - rect.left) * (drawingCanvas.width / rect.width),
-    y: (clientY - rect.top) * (drawingCanvas.height / rect.height)
+    x:
+      (clientX - rectangle.left) *
+      (drawingCanvas.width / rectangle.width),
+
+    y:
+      (clientY - rectangle.top) *
+      (drawingCanvas.height / rectangle.height)
   };
 }
 
@@ -230,26 +293,28 @@ function startDrawing(event) {
   isDrawing = true;
   hasDrawing = true;
 
-  const pos = getCanvasPosition(event);
+  const position = getCanvasPosition(event);
 
-  ctx.beginPath();
-  ctx.moveTo(pos.x, pos.y);
+  canvasContext.beginPath();
+  canvasContext.moveTo(position.x, position.y);
 }
 
 function draw(event) {
-  if (!isDrawing) return;
+  if (!isDrawing) {
+    return;
+  }
 
   event.preventDefault();
 
-  const pos = getCanvasPosition(event);
+  const position = getCanvasPosition(event);
 
-  ctx.lineWidth = penSize.value;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
-  ctx.strokeStyle = penColor.value;
+  canvasContext.lineWidth = Number(penSize.value);
+  canvasContext.lineCap = "round";
+  canvasContext.lineJoin = "round";
+  canvasContext.strokeStyle = penColor.value;
 
-  ctx.lineTo(pos.x, pos.y);
-  ctx.stroke();
+  canvasContext.lineTo(position.x, position.y);
+  canvasContext.stroke();
 }
 
 function stopDrawing() {
@@ -261,38 +326,88 @@ drawingCanvas.addEventListener("mousemove", draw);
 drawingCanvas.addEventListener("mouseup", stopDrawing);
 drawingCanvas.addEventListener("mouseleave", stopDrawing);
 
-drawingCanvas.addEventListener("touchstart", startDrawing);
-drawingCanvas.addEventListener("touchmove", draw);
+drawingCanvas.addEventListener("touchstart", startDrawing, {
+  passive: false
+});
+
+drawingCanvas.addEventListener("touchmove", draw, {
+  passive: false
+});
+
 drawingCanvas.addEventListener("touchend", stopDrawing);
 
 clearCanvasBtn.addEventListener("click", resetCanvas);
 
 
 /*
-   FAVORITE BUTTON
-   Toggles favorite state inside the modal.
+   FAVOURITE BUTTON INSIDE MODAL
 */
 
-favoriteBtn.addEventListener("click", () => {
+favoriteBtn.addEventListener("click", function () {
   isFavorite = !isFavorite;
-  favoriteBtn.classList.toggle("favorite");
+  favoriteBtn.classList.toggle("favorite", isFavorite);
 });
 
 
 /*
-   CREATE OR UPDATE NOTE
-   If editingNoteId exists, update the old note.
-   Otherwise create a new note.
+   TAGS
 */
 
-saveNoteBtn.addEventListener("click", () => {
-  const title = noteTitle.value.trim();
-  const text = noteText.value.trim();
-
+function getTagsFromInput() {
   const tags = noteTags.value
     .split(",")
-    .map((tag) => tag.trim().toLowerCase())
-    .filter((tag) => tag !== "");
+    .map(function (tag) {
+      return tag.trim().toLowerCase();
+    })
+    .filter(function (tag) {
+      return tag !== "";
+    });
+
+  return [...new Set(tags)];
+}
+
+
+/*
+   CREATE OR UPDATE NOTE
+*/
+
+function createNoteObject(title, text, tags, noteImage) {
+  return {
+    id: Date.now(),
+    type: currentNoteType,
+    title: title || "Untitled Note",
+    text: text,
+    image: noteImage,
+    tags: tags,
+    favorite: isFavorite,
+    deleted: false,
+    createdAt: new Date().toLocaleDateString()
+  };
+}
+
+function updateExistingNote(title, text, tags, noteImage) {
+  notes = notes.map(function (note) {
+    if (note.id !== editingNoteId) {
+      return note;
+    }
+
+    return {
+      ...note,
+      type: currentNoteType,
+      title: title || "Untitled Note",
+      text: text,
+      image: noteImage,
+      tags: tags,
+      favorite: isFavorite,
+      updatedAt: new Date().toLocaleDateString()
+    };
+  });
+}
+
+saveNoteBtn.addEventListener("click", function () {
+  const title = noteTitle.value.trim();
+  const text = noteText.value.trim();
+  const tags = getTagsFromInput();
 
   let noteImage = uploadedImage;
 
@@ -301,39 +416,21 @@ saveNoteBtn.addEventListener("click", () => {
   }
 
   if (!title && !text && !noteImage) {
-    alert("Please add a title, text, image, or drawing before saving.");
+    alert(
+      "Please add a title, text, image, or drawing before saving."
+    );
     return;
   }
 
-  if (editingNoteId) {
-    notes = notes.map((note) => {
-      if (note.id === editingNoteId) {
-        return {
-          ...note,
-          type: currentNoteType,
-          title: title || "Untitled Note",
-          text: text,
-          image: noteImage,
-          tags: tags,
-          favorite: isFavorite,
-          updatedAt: new Date().toLocaleDateString()
-        };
-      }
-
-      return note;
-    });
+  if (editingNoteId !== null) {
+    updateExistingNote(title, text, tags, noteImage);
   } else {
-    const newNote = {
-      id: Date.now(),
-      type: currentNoteType,
-      title: title || "Untitled Note",
-      text: text,
-      image: noteImage,
-      tags: tags,
-      favorite: isFavorite,
-      deleted: false,
-      createdAt: new Date().toLocaleDateString()
-    };
+    const newNote = createNoteObject(
+      title,
+      text,
+      tags,
+      noteImage
+    );
 
     notes.unshift(newNote);
   }
@@ -344,186 +441,366 @@ saveNoteBtn.addEventListener("click", () => {
 });
 
 
-/* 
-   EDIT EXISTING NOTE
-   Opens the modal with the note's current saved data.
+/*
+   EDIT NOTE
 */
 
 function editNote(id) {
-  const note = notes.find((note) => note.id === id);
+  const note = notes.find(function (savedNote) {
+    return savedNote.id === id;
+  });
 
-  if (!note) return;
+  if (!note) {
+    return;
+  }
 
   editingNoteId = id;
   currentNoteType = note.type || "text";
-  isFavorite = note.favorite;
+  isFavorite = Boolean(note.favorite);
   uploadedImage = note.image || "";
 
-  noteTitle.value = note.title;
+  noteTitle.value = note.title || "";
   noteText.value = note.text || "";
-  noteTags.value = note.tags ? note.tags.join(", ") : "";
+
+  if (Array.isArray(note.tags)) {
+    noteTags.value = note.tags.join(", ");
+  } else {
+    noteTags.value = "";
+  }
 
   favoriteBtn.classList.toggle("favorite", isFavorite);
   saveNoteBtn.textContent = "Update Note";
 
-  imageUploadBox.classList.add("hidden");
-  drawingBox.classList.add("hidden");
+  imageInput.value = "";
+  imagePreview.src = EMPTY_IMAGE;
   imagePreview.classList.add("hidden");
 
-  if (currentNoteType === "image") {
-    imageUploadBox.classList.remove("hidden");
-    noteText.placeholder = "Write a caption for your image...";
+  setModalMode(currentNoteType);
 
-    if (uploadedImage) {
-      imagePreview.src = uploadedImage;
-      imagePreview.classList.remove("hidden");
-    }
-  } else if (currentNoteType === "drawing") {
-    drawingBox.classList.remove("hidden");
-    noteText.placeholder = "Write a caption for your drawing...";
+  if (currentNoteType === "image" && uploadedImage) {
+    imagePreview.src = uploadedImage;
+    imagePreview.classList.remove("hidden");
+  }
 
+  if (currentNoteType === "drawing") {
     if (uploadedImage) {
       loadImageToCanvas(uploadedImage);
+    } else {
+      resetCanvas();
     }
-  } else {
-    noteText.placeholder = "Write your note...";
   }
 
   noteModal.classList.remove("hidden");
   noteTitle.focus();
 }
 
-/* 
-   DARK/LIGHT MODE
+
+/*
+   DARK AND LIGHT MODE
 */
 
-const savedTheme = localStorage.getItem("theme");
-
-if (savedTheme === "light") {
-  document.body.classList.add("light-mode");
-
-  themeToggle.innerHTML = "<i class='bx bx-sun'></i>";
+function updateThemeIcon(isLightMode) {
+  if (isLightMode) {
+    themeToggle.innerHTML = "<i class='bx bx-sun'></i>";
+  } else {
+    themeToggle.innerHTML = "<i class='bx bx-moon'></i>";
+  }
 }
 
-themeToggle.addEventListener("click", () => {
+function loadSavedTheme() {
+  const savedTheme = localStorage.getItem(THEME_KEY);
+  const isLightMode = savedTheme === "light";
 
+  document.body.classList.toggle(
+    "light-mode",
+    isLightMode
+  );
+
+  updateThemeIcon(isLightMode);
+}
+
+themeToggle.addEventListener("click", function () {
   document.body.classList.toggle("light-mode");
 
-  const isLight =
+  const isLightMode =
     document.body.classList.contains("light-mode");
 
-  if (isLight) {
-
-    localStorage.setItem("theme", "light");
-
-    themeToggle.innerHTML =
-      "<i class='bx bx-sun'></i>";
-
+  if (isLightMode) {
+    localStorage.setItem(THEME_KEY, "light");
   } else {
-
-    localStorage.setItem("theme", "dark");
-
-    themeToggle.innerHTML =
-      "<i class='bx bx-moon'></i>";
+    localStorage.setItem(THEME_KEY, "dark");
   }
 
+  updateThemeIcon(isLightMode);
 });
+
+
+/*
+   SECURITY HELPERS
+*/
+
+function escapeHTML(text) {
+  return String(text).replace(
+    /[&<>"']/g,
+    function (character) {
+      const entities = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      };
+
+      return entities[character];
+    }
+  );
+}
+
+
+/*
+   NOTE CARD MARKUP
+*/
+
+function createTagsMarkup(note) {
+  if (!Array.isArray(note.tags) || note.tags.length === 0) {
+    return "";
+  }
+
+  const tagsMarkup = note.tags
+    .map(function (tag) {
+      return (
+        '<span class="tag-pill">#' +
+        escapeHTML(tag) +
+        "</span>"
+      );
+    })
+    .join("");
+
+  return '<div class="tags-row">' + tagsMarkup + "</div>";
+}
+
+function createImageMarkup(note) {
+  if (!note.image) {
+    return "";
+  }
+
+  return (
+    '<img src="' +
+    note.image +
+    '" alt="Note attachment" class="note-image">'
+  );
+}
+
+function createTextMarkup(note) {
+  if (!note.text) {
+    return "";
+  }
+
+  return "<p>" + escapeHTML(note.text) + "</p>";
+}
+
+function createActiveActionsMarkup(note) {
+  let starClass;
+
+  if (note.favorite) {
+    starClass = "bxs-star favorite";
+  } else {
+    starClass = "bx-star";
+  }
+
+  return `
+    <button
+      type="button"
+      data-action="edit"
+      data-id="${note.id}"
+      title="Edit note"
+      aria-label="Edit note"
+    >
+      <i class="bx bx-edit"></i>
+    </button>
+
+    <button
+      type="button"
+      data-action="favorite"
+      data-id="${note.id}"
+      title="Favourite note"
+      aria-label="Favourite note"
+    >
+      <i class="bx ${starClass}"></i>
+    </button>
+
+    <button
+      type="button"
+      data-action="bin"
+      data-id="${note.id}"
+      title="Move to bin"
+      aria-label="Move note to bin"
+    >
+      <i class="bx bx-trash"></i>
+    </button>
+  `;
+}
+
+function createDeletedActionsMarkup(note) {
+  return `
+    <button
+      type="button"
+      data-action="restore"
+      data-id="${note.id}"
+      title="Restore note"
+      aria-label="Restore note"
+    >
+      <i class="bx bx-undo"></i>
+    </button>
+
+    <button
+      type="button"
+      data-action="delete"
+      data-id="${note.id}"
+      title="Delete forever"
+      aria-label="Delete note forever"
+    >
+      <i class="bx bx-x"></i>
+    </button>
+  `;
+}
+
+function createNoteCard(note) {
+  const noteCard = document.createElement("article");
+
+  let dateText;
+  let actionMarkup;
+
+  if (note.updatedAt) {
+    dateText = "Updated " + note.updatedAt;
+  } else {
+    dateText = note.createdAt;
+  }
+
+  if (note.deleted) {
+    actionMarkup = createDeletedActionsMarkup(note);
+  } else {
+    actionMarkup = createActiveActionsMarkup(note);
+  }
+
+  noteCard.className = "note-card";
+
+  noteCard.innerHTML = `
+    ${createImageMarkup(note)}
+
+    <h3>${escapeHTML(note.title)}</h3>
+
+    ${createTextMarkup(note)}
+
+    ${createTagsMarkup(note)}
+
+    <div class="note-actions">
+      <small>${escapeHTML(dateText || "")}</small>
+
+      <div class="note-icons">
+        ${actionMarkup}
+      </div>
+    </div>
+  `;
+
+  return noteCard;
+}
+
+
+/*
+   FILTER NOTES
+*/
+
+function noteMatchesSearch(note, searchTerm) {
+  const title = String(note.title || "").toLowerCase();
+  const text = String(note.text || "").toLowerCase();
+
+  let tags = "";
+
+  if (Array.isArray(note.tags)) {
+    tags = note.tags.join(" ").toLowerCase();
+  }
+
+  return (
+    title.includes(searchTerm) ||
+    text.includes(searchTerm) ||
+    tags.includes(searchTerm)
+  );
+}
+
+function noteMatchesCurrentView(note) {
+  if (currentView === "favorites") {
+    return note.favorite && !note.deleted;
+  }
+
+  if (currentView === "tags") {
+    return (
+      !note.deleted &&
+      Array.isArray(note.tags) &&
+      note.tags.length > 0
+    );
+  }
+
+  if (currentView === "bin") {
+    return Boolean(note.deleted);
+  }
+
+  return !note.deleted;
+}
+
 
 /*
    RENDER NOTES
-   Filters and displays notes based on sidebar view + search.
 */
 
 function renderNotes() {
   notesGrid.innerHTML = "";
 
-  emptyBinBtn.classList.toggle("hidden", currentView !== "bin");
+  emptyBinBtn.classList.toggle(
+    "hidden",
+    currentView !== "bin"
+  );
 
-  const searchTerm = searchInput.value.toLowerCase();
+  const searchTerm = searchInput.value
+    .trim()
+    .toLowerCase();
 
-  const filteredNotes = notes.filter((note) => {
-    const noteTagsText = note.tags ? note.tags.join(" ") : "";
-
-    const matchesSearch =
-      note.title.toLowerCase().includes(searchTerm) ||
-      note.text.toLowerCase().includes(searchTerm) ||
-      noteTagsText.includes(searchTerm);
-
-    if (currentView === "all") return !note.deleted && matchesSearch;
-    if (currentView === "favorites") return note.favorite && !note.deleted && matchesSearch;
-    if (currentView === "tags") return !note.deleted && note.tags && note.tags.length > 0 && matchesSearch;
-    if (currentView === "bin") return note.deleted && matchesSearch;
-
-    return !note.deleted && matchesSearch;
+  const filteredNotes = notes.filter(function (note) {
+    return (
+      noteMatchesCurrentView(note) &&
+      noteMatchesSearch(note, searchTerm)
+    );
   });
 
   if (filteredNotes.length === 0) {
-    notesGrid.innerHTML = `<p style="color:#9ca3af;">No notes found.</p>`;
+    const emptyMessage = document.createElement("p");
+
+    emptyMessage.className = "empty-message";
+    emptyMessage.textContent = "No notes found.";
+
+    notesGrid.appendChild(emptyMessage);
     return;
   }
 
-  filteredNotes.forEach((note) => {
-    const noteCard = document.createElement("article");
-    noteCard.className = "note-card";
-
-    noteCard.innerHTML = `
-      ${note.image ? `<img src="${note.image}" alt="Note image" class="note-image">` : ""}
-
-      <h3>${escapeHTML(note.title)}</h3>
-
-      ${note.text ? `<p>${escapeHTML(note.text)}</p>` : ""}
-
-      ${
-        note.tags && note.tags.length > 0
-          ? `<div class="tags-row">
-              ${note.tags.map((tag) => `<span class="tag-pill">#${escapeHTML(tag)}</span>`).join("")}
-            </div>`
-          : ""
-      }
-
-      <div class="note-actions">
-        <small>${note.updatedAt ? `Updated ${note.updatedAt}` : note.createdAt}</small>
-
-        <div class="note-icons">
-          ${
-            note.deleted
-              ? `
-                <button onclick="restoreNote(${note.id})" title="Restore note">
-                  <i class='bx bx-undo'></i>
-                </button>
-                <button onclick="deleteForever(${note.id})" title="Delete forever">
-                  <i class='bx bx-x'></i>
-                </button>
-              `
-              : `
-                <button onclick="editNote(${note.id})" title="Edit note">
-                  <i class='bx bx-edit'></i>
-                </button>
-                <button onclick="toggleFavorite(${note.id})" title="Favourite note">
-                  <i class='bx ${note.favorite ? "bxs-star favorite" : "bx-star"}'></i>
-                </button>
-                <button onclick="moveToBin(${note.id})" title="Move to bin">
-                  <i class='bx bx-trash'></i>
-                </button>
-              `
-          }
-        </div>
-      </div>
-    `;
-
-    notesGrid.appendChild(noteCard);
+  filteredNotes.forEach(function (note) {
+    notesGrid.appendChild(createNoteCard(note));
   });
 }
 
 
-/* 
+/*
    NOTE ACTIONS
-   Favorite, move to bin, restore, and delete forever.
 */
 
 function toggleFavorite(id) {
-  notes = notes.map((note) => {
-    if (note.id === id) return { ...note, favorite: !note.favorite };
+  notes = notes.map(function (note) {
+    if (note.id === id) {
+      return {
+        ...note,
+        favorite: !note.favorite
+      };
+    }
+
     return note;
   });
 
@@ -532,8 +809,14 @@ function toggleFavorite(id) {
 }
 
 function moveToBin(id) {
-  notes = notes.map((note) => {
-    if (note.id === id) return { ...note, deleted: true };
+  notes = notes.map(function (note) {
+    if (note.id === id) {
+      return {
+        ...note,
+        deleted: true
+      };
+    }
+
     return note;
   });
 
@@ -542,8 +825,14 @@ function moveToBin(id) {
 }
 
 function restoreNote(id) {
-  notes = notes.map((note) => {
-    if (note.id === id) return { ...note, deleted: false };
+  notes = notes.map(function (note) {
+    if (note.id === id) {
+      return {
+        ...note,
+        deleted: false
+      };
+    }
+
     return note;
   });
 
@@ -552,27 +841,43 @@ function restoreNote(id) {
 }
 
 function deleteForever(id) {
-  const confirmDelete = confirm("Permanently delete this note?");
-  if (!confirmDelete) return;
+  const confirmed = confirm(
+    "Permanently delete this note?"
+  );
 
-  notes = notes.filter((note) => note.id !== id);
+  if (!confirmed) {
+    return;
+  }
+
+  notes = notes.filter(function (note) {
+    return note.id !== id;
+  });
 
   saveToStorage();
   renderNotes();
 }
 
 function emptyBin() {
-  const notesInBin = notes.filter((note) => note.deleted);
+  const binHasNotes = notes.some(function (note) {
+    return note.deleted;
+  });
 
-  if (notesInBin.length === 0) {
+  if (!binHasNotes) {
     alert("Bin is already empty.");
     return;
   }
 
-  const confirmEmpty = confirm("Permanently delete all notes in the bin?");
-  if (!confirmEmpty) return;
+  const confirmed = confirm(
+    "Permanently delete all notes in the bin?"
+  );
 
-  notes = notes.filter((note) => !note.deleted);
+  if (!confirmed) {
+    return;
+  }
+
+  notes = notes.filter(function (note) {
+    return !note.deleted;
+  });
 
   saveToStorage();
   renderNotes();
@@ -580,62 +885,106 @@ function emptyBin() {
 
 
 /*
-   SIDEBAR NAVIGATION
-   Changes which section of notes is shown.
+   NOTE CARD EVENT DELEGATION
 */
 
-navItems.forEach((item, index) => {
-  item.addEventListener("click", (event) => {
+notesGrid.addEventListener("click", function (event) {
+  const actionButton = event.target.closest(
+    "button[data-action]"
+  );
+
+  if (!actionButton) {
+    return;
+  }
+
+  const action = actionButton.dataset.action;
+  const noteId = Number(actionButton.dataset.id);
+
+  if (action === "edit") {
+    editNote(noteId);
+    return;
+  }
+
+  if (action === "favorite") {
+    toggleFavorite(noteId);
+    return;
+  }
+
+  if (action === "bin") {
+    moveToBin(noteId);
+    return;
+  }
+
+  if (action === "restore") {
+    restoreNote(noteId);
+    return;
+  }
+
+  if (action === "delete") {
+    deleteForever(noteId);
+  }
+});
+
+
+/*
+   SIDEBAR NAVIGATION
+*/
+
+navItems.forEach(function (item, index) {
+  item.addEventListener("click", function (event) {
     event.preventDefault();
 
-    navItems.forEach((nav) => nav.classList.remove("active"));
+    navItems.forEach(function (navigationItem) {
+      navigationItem.classList.remove("active");
+    });
+
     item.classList.add("active");
 
-    if (index === 0) currentView = "all";
-    if (index === 1) currentView = "favorites";
-    if (index === 2) currentView = "tags";
-    if (index === 3) currentView = "bin";
+    const views = [
+      "all",
+      "favorites",
+      "tags",
+      "bin"
+    ];
 
+    currentView = views[index] || "all";
     renderNotes();
   });
 });
 
 
-/* 
-   SEARCH
-   Re-renders notes whenever the user types in the search bar.
+/*
+   SEARCH AND BIN EVENTS
 */
 
 searchInput.addEventListener("input", renderNotes);
-
-
-/*
-   EMPTY BIN EVENT
-*/
-
 emptyBinBtn.addEventListener("click", emptyBin);
 
 
 /*
-   SECURITY HELPER
-   Prevents user text from being treated as HTML.
- */
+   CLOSE MODAL USING OVERLAY OR ESCAPE
+*/
 
-function escapeHTML(text) {
-  return String(text).replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;"
-  }[char]));
-} 
+noteModal.addEventListener("click", function (event) {
+  if (event.target === noteModal) {
+    closeNoteModal();
+  }
+});
+
+document.addEventListener("keydown", function (event) {
+  if (
+    event.key === "Escape" &&
+    !noteModal.classList.contains("hidden")
+  ) {
+    closeNoteModal();
+  }
+});
 
 
 /*
    INITIAL LOAD
-   Prepares canvas and displays saved notes.
 */
 
+loadSavedTheme();
 resetCanvas();
 renderNotes();
