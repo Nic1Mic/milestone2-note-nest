@@ -362,6 +362,30 @@ The drawing note feature uses the HTML Canvas API and allows users to sketch ide
 
 ---
 
+
+### Testing Approach
+
+Software testing can be carried out manually or through automated tools.
+
+**Manual testing** In manual testing, an user uses the program to verify that every feature operates as it should. Clicking buttons, making notes, changing material, testing navigation, ensuring responsiveness, and verifying that data is retained after page refreshes are all examples of this.
+
+**Automated testing** Checks code and behaviour automatically using frameworks, scripts, or validation tools. Particularly in larger applications, it is helpful for rapidly running tests and reliably discovering issues.
+
+Because NoteNest is a front-end application with interactive features that are best tested by using the app as an end user, **manual testing** was the primary testing approach selected. Every feature underwent separate testing both during development and following deployment.
+
+Automated tools were also used to support the manual testing process:
+
+- W3C HTML Validator
+- W3C CSS Validator
+- JSHint for JavaScript
+- Google Lighthouse for performance, accessibility, best practices, and SEO
+
+This combined approach helped confirm that the application worked correctly, followed coding standards, and provided a good user experience.
+
+
+---
+
+
 ### 7.1 Manual Testing
 
 | Feature | Action | Expected Result | Outcome |
@@ -434,6 +458,13 @@ Example screenshot:
 
 
 ![CSS Validator Results](images/validators/css-validator.png)
+
+
+#### JavaScript Validation
+
+JavaScript was tested using JSHint to identify syntax issues and improve code quality.
+
+![JSHint Validation Results](images/validators/js-validator.png)
 
 
 ---
